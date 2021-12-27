@@ -1,6 +1,5 @@
 import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
-import { Application } from "https://deno.land/x/oak/mod.ts";
 
 interface SessionData {
   pizzaCount: number;
@@ -17,17 +16,17 @@ function initial(): SessionData {
 }
 bot.use(session({ initial }));
 bot.command("pizza", async (ctx) => {
-  await ctx.reply(ctx.session.pizzaCount);
+  await ctx.reply(ctx.session.pizzaCount.toString());
 });
 
 bot.command("addPizza", async (ctx) => {
   ctx.session.pizzaCount += 1;
-  await ctx.reply(ctx.session.pizzaCount);
+  await ctx.reply(ctx.session.pizzaCount.toString());
 });
 
 bot.command("removePizza", async (ctx) => {
   ctx.session.pizzaCount -= 1;
-  await ctx.reply(ctx.session.pizzaCount);
+  await ctx.reply(ctx.session.pizzaCount.toString());
 });
 
 bot.on("msg", async (ctx) => {
@@ -54,10 +53,9 @@ bot.on("msg", async (ctx) => {
     );
   }
 });
-
+serve(webhookCallback(bot, "std/http"));
 bot.catch(errorHandler);
 
 function errorHandler(err: BotError) {
   console.error((err));
 }
-  serve(webhookCallback(bot, "std/http"));
