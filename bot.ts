@@ -1,9 +1,8 @@
-import {Bot, BotError, Context, NextFunction, session, SessionFlavor} from "https://deno.land/x/grammy/mod.ts";
-import { run } from "https://deno.land/x/grammy_runner/mod.ts";
-import "https://deno.land/x/dotenv/load.ts";
+import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
 import {langDetect} from "https://deno.land/x/grammyjs_lang@v0.0.1/src/index.ts";
 import { i18n } from "https://deno.land/x/grammyjs_lang@v0.0.1/src/deps.deno.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
+import { Application } from "https://deno.land/x/oak/mod.ts";
 
 interface SessionData {
   pizzaCount: number;
@@ -14,6 +13,7 @@ interface i18nFlavor {
 }
 
 type i18nFlavorContext = Context & i18nFlavor & SessionFlavor<SessionData>
+const app = new Application(); // or whatever you're using
 
 const bot = new Bot<i18nFlavorContext>(Deno.env.get("TOKEN") || ""); // <-- place your token inside this string
 const initOptions = {
@@ -81,4 +81,4 @@ bot.catch(errorHandler);
 function errorHandler(err: BotError) {
   console.error((err));
 }
-run(bot);
+app.use(webhookCallback(bot, "oak"));
