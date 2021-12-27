@@ -1,5 +1,4 @@
 # grammy-raw-bot
- Raw reply bot for grammy
+ Raw reply bot for grammy running on deno
 
-# PM2 Optional
-If you don't want to use PM2 just remove imports and delete pm2.ts
+
