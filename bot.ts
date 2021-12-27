@@ -1,6 +1,4 @@
 import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
-import {langDetect} from "https://deno.land/x/grammyjs_lang@v0.0.1/src/index.ts";
-import { i18n } from "https://deno.land/x/grammyjs_lang@v0.0.1/src/deps.deno.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
 import { Application } from "https://deno.land/x/oak/mod.ts";
 
@@ -8,47 +6,28 @@ interface SessionData {
   pizzaCount: number;
 }
 
-interface i18nFlavor {
-  i18n: i18n;
-}
 
-type i18nFlavorContext = Context & i18nFlavor & SessionFlavor<SessionData>
+type MyContext = Context & SessionFlavor<SessionData>
 const app = new Application(); // or whatever you're using
 
-const bot = new Bot<i18nFlavorContext>(Deno.env.get("TOKEN") || ""); // <-- place your token inside this string
-const initOptions = {
-  debug: false,
-  fallbackLng:"ru",
-  resources: {
-    en: {
-      translation: {
-        "key": "hello world"
-      }
-    },
-    de: {
-      translation: {
-        "key": "Hallo Welt"
-      }
-    },
-    ru: {
-      translation: {
-        "key": "Das kann ich nicht"
-      }
-    }
-  }
-}
+const bot = new Bot<MyContext>(Deno.env.get("TOKEN") || ""); // <-- place your token inside this string
+
 function initial(): SessionData {
   return { pizzaCount: 0 };
 }
 bot.use(session({ initial }));
-bot.use(langDetect(initOptions, true));
-bot.command("i18n", async (ctx) => {
-  await ctx.reply(ctx.i18n.t('key'));
+bot.command("pizza", async (ctx) => {
+  await ctx.reply(ctx.session.pizzaCount);
 });
 
-bot.command("langen", async (ctx) => {
-  await ctx.i18n.changeLanguage('en');
-  await ctx.reply(ctx.i18n.t('key'));
+bot.command("addPizza", async (ctx) => {
+  ctx.session.pizzaCount += 1;
+  await ctx.reply(ctx.session.pizzaCount);
+});
+
+bot.command("removePizza", async (ctx) => {
+  ctx.session.pizzaCount -= 1;
+  await ctx.reply(ctx.session.pizzaCount);
 });
 
 bot.on("msg", async (ctx) => {
