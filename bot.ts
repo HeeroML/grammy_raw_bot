@@ -1,6 +1,7 @@
 import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
 import { Application } from "https://deno.land/x/oak/mod.ts";
+import { bold, yellow } from "https://deno.land/std@0.118.0/fmt/colors.ts";
 
 const app = new Application(); // or whatever you're using
 
@@ -62,8 +63,13 @@ bot.catch(errorHandler);
 function errorHandler(err: BotError) {
   console.error((err));
 }
-app.addEventListener(
-  "listen",
-  (_e) => console.log("Listening on http://localhost:8080"),
-);
+app.addEventListener("listen", ({ hostname, port, serverType }) => {
+  console.log(
+    bold("Start listening on ") + yellow(`${hostname}:${port}`),
+  );
+  console.log(bold("  using HTTP server: " + yellow(serverType)));
+});
+
+await app.listen({ hostname: "grammy-raw-bot.deno.dev", port: 8000 });
+console.log(bold("Finished."));
 await app.listen({ port: 8080 });
