@@ -8,7 +8,7 @@ interface SessionData {
 
 
 type MyContext = Context & SessionFlavor<SessionData>
-const app = new Application(); // or whatever you're using
+import { serve } from "https://deno.land/std@0.119.0/http/server.ts";
 
 const bot = new Bot<MyContext>(Deno.env.get("TOKEN") || ""); // <-- place your token inside this string
 
@@ -60,4 +60,4 @@ bot.catch(errorHandler);
 function errorHandler(err: BotError) {
   console.error((err));
 }
-app.use(webhookCallback(bot, "oak"));
+  serve(webhookCallback(bot, "std/http"));
