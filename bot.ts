@@ -1,13 +1,16 @@
 import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
+import { Application } from "https://deno.land/x/oak/mod.ts";
 
+const app = new Application(); // or whatever you're using
+
+// Make sure to specify the framework you use.
 interface SessionData {
   pizzaCount: number;
 }
 
 
 type MyContext = Context & SessionFlavor<SessionData>
-import { serve } from "https://deno.land/std@0.119.0/http/server.ts";
 
 const bot = new Bot<MyContext>(Deno.env.get("TOKEN") || ""); // <-- place your token inside this string
 
@@ -53,9 +56,14 @@ bot.on("msg", async (ctx) => {
     );
   }
 });
-serve(webhookCallback(bot, "std/http"));
+app.use(webhookCallback(bot, "oak"));
 bot.catch(errorHandler);
 
 function errorHandler(err: BotError) {
   console.error((err));
 }
+app.addEventListener(
+  "listen",
+  (_e) => console.log("Listening on http://localhost:8080"),
+);
+await app.listen({ port: 8080 });
