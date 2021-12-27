@@ -1,6 +1,7 @@
 import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
 import { run } from "https://deno.land/x/grammy_runner/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 
 // Make sure to specify the framework you use.
 interface SessionData {
@@ -59,5 +60,19 @@ bot.catch(errorHandler);
 function errorHandler(err: BotError) {
   console.error((err));
 }
-
 run(bot)
+
+const router = new Router();
+router.get("/", (ctx) => {
+  ctx.response.body = "Hello world!";
+});
+
+const app = new Application();
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+app.addEventListener(
+  "listen",
+  (e) => console.log("Listening on http://localhost:8080"),
+);
+await app.listen({ port: 8080 });
