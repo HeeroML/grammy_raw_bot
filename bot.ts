@@ -2,12 +2,9 @@ import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCal
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
 //import { run } from "https://deno.land/x/grammy_runner/mod.ts";
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
-
-// Make sure to specify the framework you use.
 interface SessionData {
   pizzaCount: number;
 }
-
 
 type MyContext = Context & SessionFlavor<SessionData>
 
