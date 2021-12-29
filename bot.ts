@@ -69,7 +69,6 @@ router.get("/", (ctx) => {
 
 const app = new Application();
 app.use(router.routes());
-app.use(router.allowedMethods());
 app.use(webhookCallback(bot, "oak"));
 app.addEventListener(
   "listen",
