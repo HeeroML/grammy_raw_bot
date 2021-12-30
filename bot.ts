@@ -1,7 +1,5 @@
 import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
-import { run } from "https://deno.land/x/grammy_runner/mod.ts";
-import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 interface SessionData {
   pizzaCount: number;
 }
@@ -58,18 +56,5 @@ function errorHandler(err: BotError) {
   console.error((err));
 }
 //run(bot)
+export default bot;
 
-const router = new Router();
-router.get("/", (ctx) => {
-  ctx.response.body = "Hello world!";
-});
-
-const app = new Application();
-app.use(router.routes());
-//app.use(webhookCallback(bot, "oak"));
-run(bot);
-app.addEventListener(
-  "listen",
-  (e) => console.log("Listening on http://localhost:8080"),
-);
-await app.listen({ port: 8080 });
