@@ -1,5 +1,6 @@
-import {Bot, BotError, Context, NextFunction, session, SessionFlavor, webhookCallback} from "https://deno.land/x/grammy/mod.ts";
+import {Bot, BotError, Context, NextFunction, session, SessionFlavor} from "https://deno.land/x/grammy/mod.ts";
 import { escapeHtml } from "https://deno.land/x/escape/mod.ts";
+import { apiThrottler } from "https://deno.land/x/grammy_transformer_throttler/mod.ts";
 interface SessionData {
   pizzaCount: number;
 }
@@ -7,6 +8,9 @@ interface SessionData {
 type MyContext = Context & SessionFlavor<SessionData>
 
 const bot = new Bot<MyContext>(Deno.env.get("TOKEN") || ""); // <-- place your token inside this string
+const throttler = apiThrottler();
+//@ts-ignore:Throttler having type issue. Reported in Chat
+bot.api.config.use(throttler);
 
 function initial(): SessionData {
   return { pizzaCount: 0 };
