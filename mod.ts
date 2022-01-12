@@ -1,12 +1,9 @@
-import { Bot, webhookCallback } from "https://deno.land/x/grammy/mod.ts";
-// You might modify this to the correct way to import your `Bot` object.
+import { serve, webhookCallback } from "./deps.ts";
 import bot from "./bot.ts";
-
-import { serve } from "https://deno.land/std/http/server.ts";
 
 const handleUpdate = webhookCallback(bot, "std/http");
 
-serve(async (req: any) => {
+serve(async (req: Request) => {
   if (req.method == "POST") {
     try {
       return await handleUpdate(req);
