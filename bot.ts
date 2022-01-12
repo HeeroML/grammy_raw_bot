@@ -12,7 +12,7 @@ bot.on("msg", async (ctx) => {
   const author = ctx.from?.id;
   const forward = ctx.msg.forward_from?.id;
   const text = prettifyUpdate(update, author, forward);
-  await ctx.reply(text);
+  await ctx.reply(text, { parse_mode: "HTML" });
 });
 
 function prettifyUpdate(
