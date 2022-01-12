@@ -20,7 +20,7 @@ function prettifyUpdate(
   author?: number,
   forward?: number,
 ): string {
-  const updateText = escapeHtml(JSON.stringify(update, null, 2));
+  const updateText = JSON.stringify(escapeHtml(update), null, 2);
   const authorText = author
     ? `<b>Telegram ID's:</b>\nForwarded User ID: <code>${author}</code>\n\n`
     : "";
