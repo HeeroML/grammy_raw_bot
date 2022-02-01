@@ -25,7 +25,7 @@ function prettifyUpdate(
     ? `<b>Telegram ID's:</b>\nForwarded User ID: <code>${author}</code>\n\n`
     : "";
   const forwardText = forward
-    ? `<b>Telegram ID's:</b>\nForwarded User ID: <code>${forward}</code>\n\n`
+    ? `<b>Telegram ID's: </b>\nForwarded User ID: <code>${forward}</code>\n\n`
     : "";
   return forwardText + authorText + updateText;
 }
