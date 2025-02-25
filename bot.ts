@@ -1071,11 +1071,16 @@ bot.on("message", async (ctx) => {
     // Ensure session is properly initialized
     ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
     
-    // ALWAYS ENABLE THE BOT
-    ctx.session.enabled = true;
+    // Skip processing if bot is disabled in this chat
+    if (!ctx.session.enabled) {
+      return;
+    }
     
-    // Use a very simple reply first to test if basic functionality works
-    await ctx.reply("I received your message. Let me analyze it...");
+    // Check message type and apply filter if needed
+    const messageType = getMessageType(ctx);
+    if (messageType && !shouldProcessMessageType(ctx.session.messageFilters, messageType)) {
+      return;
+    }
     
     const update = ctx.update;
     const author = ctx.from?.id;
