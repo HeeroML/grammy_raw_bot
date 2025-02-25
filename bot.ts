@@ -1049,7 +1049,7 @@ When enabled, each user's display preferences will be saved and applied only to 
 // Message Handler
 // --------------------
 
-// Handle all messages - BYPASSED FILTER CHECK
+// Handle all messages
 bot.on("message", async (ctx) => {
   // Ensure session is properly initialized
   ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
@@ -1059,18 +1059,17 @@ bot.on("message", async (ctx) => {
     return;
   }
   
-  // IMPORTANT: Filter check bypassed - all messages will be processed regardless of message type
-  // Previous code was:
-  // const messageType = getMessageType(ctx);
-  // if (messageType && !shouldProcessMessageType(ctx.session.messageFilters, messageType)) {
-  //   return;
-  // }
+  // Check message type and apply filter if needed
+  const messageType = getMessageType(ctx);
+  if (messageType && !shouldProcessMessageType(ctx.session.messageFilters, messageType)) {
+    return;
+  }
   
   const update = ctx.update;
   const author = ctx.from?.id;
 
   // Extract the forward origin if the message is forwarded
-  const forwardOrigin = ctx.msg.forward_origin as AnyMessageOrigin | undefined;
+  const forwardOrigin = ctx.message?.forward_origin as AnyMessageOrigin | undefined;
 
   // Get effective preferences for this user
   const preferences = getEffectivePreferences(ctx.session, author);
