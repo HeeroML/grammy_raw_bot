@@ -320,8 +320,12 @@ function prettifyUpdate(
   // Combine all sections
   result = forwardText + authorText + updateText;
   
-  // Apply privacy masks if needed
-  result = applyPrivacyMask(result, preferences.privacyOptions);
+  // Apply privacy masks if needed (with safety check for undefined privacyOptions)
+  result = applyPrivacyMask(result, preferences.privacyOptions || {
+    maskUserIds: false,
+    maskPhoneNumbers: true,
+    maskChatIds: false
+  });
   
   // Add help text for compact mode
   if (preferences.displayMode === 'compact') {
@@ -1079,8 +1083,17 @@ bot.on("message", async (ctx) => {
     // Extract the forward origin if the message is forwarded
     const forwardOrigin = ctx.message?.forward_origin as AnyMessageOrigin | undefined;
 
-    // Get effective preferences for this user
+    // Get effective preferences for this user and ensure it has all required fields
     const preferences = getEffectivePreferences(ctx.session, author);
+    
+    // Make sure privacyOptions exists
+    if (!preferences.privacyOptions) {
+      preferences.privacyOptions = {
+        maskUserIds: false,
+        maskPhoneNumbers: true,
+        maskChatIds: false
+      };
+    }
 
     // Generate the reply text using the helper function
     const text = prettifyUpdate(
