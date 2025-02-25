@@ -321,50 +321,69 @@ function prettifyUpdate(
   return result;
 }
 
+/**
+ * Helper function for when bot is added to a chat
+ */
+async function handleBotAdded(ctx: MyContext) {
+  console.log("Bot added to a chat:", ctx.chat.id);
+  
+  // Initialize session with raw display mode for groups/channels
+  ctx.session = getDefaultSession(ctx.chat.type);
+  
+  // Enable the bot initially
+  ctx.session.enabled = true;
+  
+  // Send a raw JSON of the join event as requested
+  const rawJoinData = `<b>🤖 BOT ADDED TO CHAT</b>\n<pre><code class="language-json">${escapeHtml(
+    JSON.stringify(ctx.update, null, 2)
+  )}</code></pre>`;
+  
+  await ctx.reply(rawJoinData, {
+    parse_mode: "HTML"
+  });
+  
+  // Also send a welcome message
+  await ctx.reply(
+    "👋 Hello! I'll analyze messages and show their details.\n\n" +
+    "• Use /help to learn about my commands\n" +
+    "• Use /toggle to enable/disable me (admin only)\n" +
+    "• Use /mode to change display settings\n" +
+    "• Use /filter to set which message types I respond to\n" +
+    "• Use /privacy to configure privacy options\n" +
+    "• Use /admin to access admin control panel (admin only)",
+    {
+      parse_mode: "HTML"
+    }
+  );
+}
+
 // --------------------
 // Bot Event Handlers
 // --------------------
 
-// Handle new chat member event (bot added to group/channel)
-bot.on(["chat_member:new", "my_chat_member"], async (ctx) => {
-  // Get the member update
-  const member = "chatMember" in ctx ? ctx.chatMember.new_chat_member : ctx.myChatMember.new_chat_member;
-  
-  // Check if this is the bot being added
-  const isBot = member.user.id === ctx.me.id;
-  const isAdded = member.status === "member" || member.status === "administrator";
-  
-  if (isBot && isAdded) {
-    console.log("Bot added to a chat:", ctx.chat.id);
+// Handle new chat member events (FIXED VERSION)
+bot.on(["chat_member", "my_chat_member"], async (ctx) => {
+  // For chat_member updates
+  if ("chat_member" in ctx.update) {
+    const member = ctx.update.chat_member.new_chat_member;
+    const isBot = member.user.id === ctx.me.id;
+    const isAdded = member.status === "member" || member.status === "administrator";
     
-    // Initialize session with raw display mode for groups/channels
-    ctx.session = getDefaultSession(ctx.chat.type);
+    if (isBot && isAdded) {
+      // Bot was added to a chat
+      await handleBotAdded(ctx);
+    }
+  }
+  // For my_chat_member updates
+  else if ("my_chat_member" in ctx.update) {
+    const member = ctx.update.my_chat_member.new_chat_member;
+    const isBot = member.user.id === ctx.me.id;
+    const isAdded = member.status === "member" || member.status === "administrator";
     
-    // Enable the bot initially
-    ctx.session.enabled = true;
-    
-    // Send a raw JSON of the join event as requested
-    const rawJoinData = `<b>🤖 BOT ADDED TO CHAT</b>\n<pre><code class="language-json">${escapeHtml(
-      JSON.stringify(ctx.update, null, 2)
-    )}</code></pre>`;
-    
-    await ctx.reply(rawJoinData, {
-      parse_mode: "HTML"
-    });
-    
-    // Also send a welcome message
-    await ctx.reply(
-      "👋 Hello! I'll analyze messages and show their details.\n\n" +
-      "• Use /help to learn about my commands\n" +
-      "• Use /toggle to enable/disable me (admin only)\n" +
-      "• Use /mode to change display settings\n" +
-      "• Use /filter to set which message types I respond to\n" +
-      "• Use /privacy to configure privacy options\n" +
-      "• Use /admin to access admin control panel (admin only)",
-      {
-        parse_mode: "HTML"
-      }
-    );
+    if (isBot && isAdded) {
+      // Bot was added to a chat
+      await handleBotAdded(ctx);
+    }
   }
 });
 
