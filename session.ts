@@ -200,34 +200,78 @@ export async function isUserAdmin(ctx: MyContext): Promise<boolean> {
 }
 
 /**
- * Get effective view preferences for a user
+ * Ensures session has all required properties
+ * Adds missing properties with defaults if needed
+ */
+export function ensureCompleteSession(session: Partial<SessionData>, chatType?: string): SessionData {
+  const isGroup = chatType === 'group' || chatType === 'supergroup' || chatType === 'channel';
+  
+  // Create a complete session by merging with defaults for any missing parts
+  const completeSession: SessionData = {
+    // Use existing enabled status or default based on chat type
+    enabled: session.enabled ?? (chatType === 'private'),
+    
+    // Use existing view preferences or defaults
+    viewPreferences: session.viewPreferences ?? getDefaultViewPreferences(isGroup),
+    
+    // Use existing message filters or defaults
+    messageFilters: session.messageFilters ?? getDefaultMessageFilters(),
+    
+    // Use existing per-user preference setting or default to false
+    usePerUserPreferences: session.usePerUserPreferences ?? false,
+    
+    // Use existing user preferences or empty object
+    userPreferences: session.userPreferences ?? {}
+  };
+  
+  return completeSession;
+}
+
+/**
+ * Get effective view preferences for a user with safety checks
  */
 export function getEffectivePreferences(
-  sessionData: SessionData, 
+  sessionData: Partial<SessionData>, 
   userId?: number
 ): ViewPreferences {
+  // Ensure we have a complete session to work with
+  const session = ensureCompleteSession(sessionData);
+  
   // If per-user preferences are disabled or no user ID, return group preferences
-  if (!sessionData.usePerUserPreferences || !userId) {
-    return sessionData.viewPreferences;
+  if (!session.usePerUserPreferences || !userId) {
+    return session.viewPreferences;
   }
   
   // If user has preferences, return those
-  if (sessionData.userPreferences[userId]) {
-    return sessionData.userPreferences[userId].viewPreferences;
+  if (session.userPreferences[userId]) {
+    return session.userPreferences[userId].viewPreferences;
   }
   
   // Otherwise, return group preferences
-  return sessionData.viewPreferences;
+  return session.viewPreferences;
 }
 
 /**
  * Check if a message type should be processed based on filters
+ * With added safety checks for undefined values
  */
 export function shouldProcessMessageType(
-  filters: MessageFilters,
+  filters: MessageFilters | undefined,
   messageType: MessageType
 ): boolean {
-  if (filters.respondToAll) {
+  // If filters are undefined or missing, default to true (process all messages)
+  if (!filters) {
+    return true;
+  }
+  
+  // If respondToAll is true or undefined (for backward compatibility), return true
+  if (filters.respondToAll !== false) {
+    return true;
+  }
+  
+  // Check if the specific message type is enabled
+  // If enabledTypes is undefined or the type isn't defined, default to true
+  if (!filters.enabledTypes) {
     return true;
   }
   
