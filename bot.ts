@@ -27,6 +27,7 @@ import {
   isUserAdmin,
   MessageType,
   MyContext,
+  shouldProcessMessageType,
   ViewPreferences
 } from "./session.ts";
 
