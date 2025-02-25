@@ -27,7 +27,6 @@ import {
   isUserAdmin,
   MessageType,
   MyContext,
-  shouldProcessMessageType,
   ViewPreferences
 } from "./session.ts";
 
@@ -362,7 +361,7 @@ async function handleBotAdded(ctx: MyContext) {
 // Bot Event Handlers
 // --------------------
 
-// Handle new chat member events (FIXED VERSION)
+// Handle new chat member events
 bot.on(["chat_member", "my_chat_member"], async (ctx) => {
   // For chat_member updates
   if ("chat_member" in ctx.update) {
@@ -403,9 +402,9 @@ bot.command("start", async (ctx) => {
 This bot helps you analyze messages and understand how they're structured.
 
 <b>Getting Started:</b>
-• Try sending any message to see its details
-• Use the buttons that appear to customize the view
-• Type /help to see all available commands
+- Try sending any message to see its details
+- Use the buttons that appear to customize the view
+- Type /help to see all available commands
 
 <b>Quick Commands:</b>
 /mode - Change how messages are displayed
@@ -439,12 +438,12 @@ bot.command("help", async (ctx) => {
 /import - Import settings (format: /import [code])
 
 <b>Features:</b>
-• Shows details about any message you send
-• Analyzes forwarded messages with interactive buttons
-• Customize which message types trigger responses
-• Privacy options to mask sensitive data
-• Per-user preference settings
-• Export/import settings across chats
+- Shows details about any message you send
+- Analyzes forwarded messages with interactive buttons
+- Customize which message types trigger responses
+- Privacy options to mask sensitive data
+- Per-user preference settings
+- Export/import settings across chats
 
 <b>How to use:</b>
 Just send or forward any message to get its details.
@@ -530,9 +529,9 @@ bot.command("privacy", async (ctx) => {
 
 Configure how sensitive information is displayed:
 
-• User IDs: ${preferences.privacyOptions.maskUserIds ? '✅ Masked' : '❌ Visible'}
-• Chat IDs: ${preferences.privacyOptions.maskChatIds ? '✅ Masked' : '❌ Visible'}
-• Phone Numbers: Always Masked
+- User IDs: ${preferences.privacyOptions.maskUserIds ? '✅ Masked' : '❌ Visible'}
+- Chat IDs: ${preferences.privacyOptions.maskChatIds ? '✅ Masked' : '❌ Visible'}
+- Phone Numbers: Always Masked
 
 Use the buttons below to toggle settings:
 `;
@@ -1050,7 +1049,7 @@ When enabled, each user's display preferences will be saved and applied only to 
 // Message Handler
 // --------------------
 
-// Handle all messages
+// Handle all messages - BYPASSED FILTER CHECK
 bot.on("message", async (ctx) => {
   // Ensure session is properly initialized
   ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
@@ -1060,13 +1059,12 @@ bot.on("message", async (ctx) => {
     return;
   }
   
-  // Get message type
-  const messageType = getMessageType(ctx);
-  
-  // Skip processing if message type should be filtered out
-  if (messageType && !shouldProcessMessageType(ctx.session.messageFilters, messageType)) {
-    return;
-  }
+  // IMPORTANT: Filter check bypassed - all messages will be processed regardless of message type
+  // Previous code was:
+  // const messageType = getMessageType(ctx);
+  // if (messageType && !shouldProcessMessageType(ctx.session.messageFilters, messageType)) {
+  //   return;
+  // }
   
   const update = ctx.update;
   const author = ctx.from?.id;
