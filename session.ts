@@ -286,7 +286,8 @@ export function getMessageType(ctx: MyContext): MessageType | null {
     return null;
   }
   
-  if (ctx.message.forward_date) {
+  // Check for forwarded message using forward_origin instead of forward_date
+  if (ctx.message.forward_origin) {
     return 'forward';
   } else if (ctx.message.text) {
     return 'text';
@@ -314,7 +315,6 @@ export function getMessageType(ctx: MyContext): MessageType | null {
   
   return null;
 }
-
 /**
  * Generate export command for current settings
  */

@@ -1,8 +1,9 @@
+import { MessageOriginChannel, MessageOriginChat, MessageOriginHiddenUser, MessageOriginUser } from "./deps.ts"
+
 // --------------------
 // Type Guards
 // --------------------
 
-import { MessageOriginChannel, MessageOriginChat, MessageOriginHiddenUser, MessageOriginUser } from "https://deno.land/x/grammy_types@v3.14.0/mod.ts";
 import { AnyMessageOrigin, MessageOriginUnknown } from "./types.ts";
 
 // Type guard for MessageOriginUser

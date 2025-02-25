@@ -1,4 +1,4 @@
-import { MessageOriginChannel, MessageOriginChat, MessageOriginHiddenUser, MessageOriginUser } from "https://deno.land/x/grammy_types@v3.14.0/mod.ts";
+import { MessageOriginChannel, MessageOriginChat, MessageOriginHiddenUser, MessageOriginUser } from "./deps.ts"
 
 // Define the User interface
 export interface User {

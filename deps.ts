@@ -8,7 +8,6 @@ export {
   type Context as BaseContext,
   type SessionFlavor, 
   session,
-  type SessionData
 } from "https://deno.land/x/grammy@v1.35.0/mod.ts";
 export { freeStorage } from "https://deno.land/x/grammy_storages@v2.3.0/free/src/mod.ts";
 
@@ -17,3 +16,4 @@ export {
   InlineKeyboard, 
   Keyboard 
 } from "https://deno.land/x/grammy@v1.35.0/mod.ts";
+export type { MessageOriginChannel, MessageOriginChat, MessageOriginHiddenUser, MessageOriginUser, Update } from "https://deno.land/x/grammy_types@v3.19.0/mod.ts";

@@ -6,7 +6,8 @@ import {
   escapeHtml, 
   freeStorage, 
   InlineKeyboard, 
-  session 
+  session, 
+  Update
 } from "./deps.ts";
 import { 
   isMessageOriginUser, 
@@ -31,6 +32,7 @@ import {
   ViewPreferences
 } from "./session.ts";
 
+
 // --------------------
 // Bot Initialization
 // --------------------
@@ -48,12 +50,16 @@ bot.api.config.use(throttler);
 
 // Initialize the session middleware with free storage provider
 bot.use(session({
-  // Initialize session based on chat type with complete structure
-  initial: (ctx) => {
-    console.log("Initializing session for chat type:", ctx.chat?.type);
-    // Always initialize with enabled=true
-    const session = ensureCompleteSession({enabled: true}, ctx.chat?.type);
-    return session;
+  initial: () => {
+    // Default session without ctx access - you can't use ctx.chat?.type here
+    return ensureCompleteSession({enabled: true});
+  },
+  getSessionKey: (ctx) => {
+    // Here you can access ctx and do any logging
+    console.log("Session key for chat type:", ctx.chat?.type);
+    
+    // Return the session key (usually chat ID or from ID)
+    return ctx.chat?.id.toString() ?? "default";
   },
   storage: freeStorage(bot.token),
 }));
@@ -198,7 +204,7 @@ function capitalize(str: string): string {
  * @returns A formatted HTML string containing update details.
  */
 function prettifyUpdate(
-  update: any,
+  update: Update, // Replace 'any' with 'Update' type
   preferences: ViewPreferences,
   author?: number,
   forward?: AnyMessageOrigin
@@ -340,10 +346,10 @@ function prettifyUpdate(
  * Helper function for when bot is added to a chat
  */
 async function handleBotAdded(ctx: MyContext) {
-  console.log("Bot added to a chat:", ctx.chat.id);
+  console.log("Bot added to a chat:", ctx.chat?.id);
   
   // Initialize session with raw display mode for groups/channels
-  ctx.session = ensureCompleteSession({}, ctx.chat.type);
+  ctx.session = ensureCompleteSession({}, ctx.chat?.type);
   
   // Enable the bot initially
   ctx.session.enabled = true;
@@ -379,7 +385,7 @@ async function handleBotAdded(ctx: MyContext) {
 // Handle new chat member events
 bot.on(["chat_member", "my_chat_member"], async (ctx) => {
   // For chat_member updates
-  if ("chat_member" in ctx.update) {
+  if ("chat_member" in ctx.update && ctx.update.chat_member) {
     const member = ctx.update.chat_member.new_chat_member;
     const isBot = member.user.id === ctx.me.id;
     const isAdded = member.status === "member" || member.status === "administrator";
@@ -390,7 +396,7 @@ bot.on(["chat_member", "my_chat_member"], async (ctx) => {
     }
   }
   // For my_chat_member updates
-  else if ("my_chat_member" in ctx.update) {
+  else if ("my_chat_member" in ctx.update && ctx.update.my_chat_member) {
     const member = ctx.update.my_chat_member.new_chat_member;
     const isBot = member.user.id === ctx.me.id;
     const isAdded = member.status === "member" || member.status === "administrator";
