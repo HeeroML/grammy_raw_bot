@@ -18,6 +18,7 @@ import {
 import { AnyMessageOrigin } from "./types.ts";
 import { 
   applyPrivacyMask,
+  ensureCompleteSession,
   generateExportCommand,
   getDefaultSession,
   getEffectivePreferences,
@@ -47,8 +48,8 @@ bot.api.config.use(throttler);
 
 // Initialize the session middleware with free storage provider
 bot.use(session({
-  // Initialize session based on chat type
-  initial: (ctx) => getDefaultSession(ctx.chat?.type),
+  // Initialize session based on chat type with complete structure
+  initial: (ctx) => ensureCompleteSession({}, ctx.chat?.type),
   storage: freeStorage(bot.token),
 }));
 
@@ -328,7 +329,7 @@ async function handleBotAdded(ctx: MyContext) {
   console.log("Bot added to a chat:", ctx.chat.id);
   
   // Initialize session with raw display mode for groups/channels
-  ctx.session = getDefaultSession(ctx.chat.type);
+  ctx.session = ensureCompleteSession({}, ctx.chat.type);
   
   // Enable the bot initially
   ctx.session.enabled = true;
@@ -391,8 +392,39 @@ bot.on(["chat_member", "my_chat_member"], async (ctx) => {
 // Bot Commands
 // --------------------
 
+// Start command
+bot.command("start", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
+  const startText = `
+<b>👋 Welcome to Message Inspector Bot!</b>
+
+This bot helps you analyze messages and understand how they're structured.
+
+<b>Getting Started:</b>
+• Try sending any message to see its details
+• Use the buttons that appear to customize the view
+• Type /help to see all available commands
+
+<b>Quick Commands:</b>
+/mode - Change how messages are displayed
+/filter - Choose which message types to analyze
+/privacy - Configure privacy settings
+
+Just send me any message to get started!
+`;
+
+  await ctx.reply(startText, { 
+    parse_mode: "HTML",
+  });
+});
+
 // Help command
 bot.command("help", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   const helpText = `
 <b>📋 Bot Commands:</b>
 
@@ -426,6 +458,9 @@ Use the buttons below the response to change display options.
 
 // Toggle command (admin only in groups)
 bot.command("toggle", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Check if in private chat or user is admin
   const isPrivate = ctx.chat?.type === "private";
   const isAdmin = await isUserAdmin(ctx);
@@ -446,6 +481,9 @@ bot.command("toggle", async (ctx) => {
 
 // Mode command
 bot.command("mode", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Get effective preferences for the user
   const preferences = getEffectivePreferences(ctx.session, ctx.from?.id);
   
@@ -459,6 +497,9 @@ bot.command("mode", async (ctx) => {
 
 // Filter command
 bot.command("filter", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Create a keyboard for filter settings
   const keyboard = createMessageFiltersKeyboard(ctx.session);
   
@@ -478,6 +519,9 @@ bot.command("filter", async (ctx) => {
 
 // Privacy command
 bot.command("privacy", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Get effective preferences for the user
   const preferences = getEffectivePreferences(ctx.session, ctx.from?.id);
   
@@ -513,6 +557,9 @@ Use the buttons below to toggle settings:
 
 // User preferences command
 bot.command("userprefs", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   const keyboard = createUserPrefsKeyboard(ctx.session);
   
   const userPrefsText = `
@@ -533,6 +580,9 @@ When enabled, each user's display preferences will be saved and applied only to 
 
 // Admin command
 bot.command("admin", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Check if in private chat or user is admin
   const isPrivate = ctx.chat?.type === "private";
   const isAdmin = await isUserAdmin(ctx);
@@ -562,6 +612,9 @@ Use the buttons below to manage settings:
 
 // Export command
 bot.command("export", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   const exportCommand = generateExportCommand(ctx.session);
   
   await ctx.reply(
@@ -576,6 +629,9 @@ bot.command("export", async (ctx) => {
 
 // Import command
 bot.command("import", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   const args = ctx.message?.text.split(/\s+/);
   
   if (!args || args.length < 2) {
@@ -614,6 +670,9 @@ bot.command("import", async (ctx) => {
 
 // Handle view mode changes
 bot.callbackQuery(/^view_(compact|full|raw)$/, async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Extract the mode from the callback data
   const mode = ctx.match[1] as 'compact' | 'full' | 'raw';
   
@@ -654,6 +713,9 @@ bot.callbackQuery(/^view_(compact|full|raw)$/, async (ctx) => {
 
 // Handle section toggle buttons
 bot.callbackQuery(/^toggle_(forward|author)$/, async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Extract the section from the callback data
   const section = ctx.match[1] as 'forward' | 'author';
   
@@ -707,6 +769,9 @@ bot.callbackQuery(/^toggle_(forward|author)$/, async (ctx) => {
 
 // Handle privacy option toggles
 bot.callbackQuery(/^privacy_(user_ids|chat_ids)$/, async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Extract the privacy option from the callback data
   const option = ctx.match[1] as 'user_ids' | 'chat_ids';
   
@@ -760,6 +825,9 @@ bot.callbackQuery(/^privacy_(user_ids|chat_ids)$/, async (ctx) => {
 
 // Handle message filter toggles
 bot.callbackQuery(/^filter_(all|text|photo|video|document|audio|sticker|animation|voice|poll|location|contact|forward|save)$/, async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Extract the filter option from the callback data
   const option = ctx.match[1];
   
@@ -810,6 +878,9 @@ bot.callbackQuery(/^filter_(all|text|photo|video|document|audio|sticker|animatio
 
 // Handle user preferences toggles
 bot.callbackQuery(/^userprefs_(toggle|view|reset)$/, async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Extract the option from the callback data
   const option = ctx.match[1];
   
@@ -864,6 +935,9 @@ Mask chat IDs: ${preferences.privacyOptions.maskChatIds ? 'Yes' : 'No'}
 
 // Handle admin panel actions
 bot.callbackQuery(/^admin_(toggle|export|reset|userprefs|filters)$/, async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Check if user is admin
   const isPrivate = ctx.chat?.type === "private";
   const isAdmin = await isUserAdmin(ctx);
@@ -912,7 +986,7 @@ bot.callbackQuery(/^admin_(toggle|export|reset|userprefs|filters)$/, async (ctx)
     );
   } else if (option === 'reset') {
     // Reset all settings to defaults
-    ctx.session = getDefaultSession(ctx.chat?.type);
+    ctx.session = ensureCompleteSession({}, ctx.chat?.type);
     
     // But keep the bot enabled
     ctx.session.enabled = true;
@@ -978,6 +1052,9 @@ When enabled, each user's display preferences will be saved and applied only to 
 
 // Handle all messages
 bot.on("message", async (ctx) => {
+  // Ensure session is properly initialized
+  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+  
   // Skip processing if bot is disabled in this chat
   if (!ctx.session.enabled) {
     return;
