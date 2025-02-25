@@ -48,9 +48,19 @@ bot.api.config.use(throttler);
 // Initialize the session middleware with free storage provider
 bot.use(session({
   // Initialize session based on chat type with complete structure
-  initial: (ctx) => ensureCompleteSession({}, ctx.chat?.type),
+  initial: (ctx) => {
+    console.log("Initializing session for chat type:", ctx.chat?.type);
+    // Always initialize with enabled=true
+    const session = ensureCompleteSession({enabled: true}, ctx.chat?.type);
+    return session;
+  },
   storage: freeStorage(bot.token),
 }));
+
+// Add error handling for entire bot
+bot.catch((err) => {
+  console.error("Bot global error:", err);
+});
 
 // --------------------
 // Helper Functions
@@ -1051,45 +1061,47 @@ When enabled, each user's display preferences will be saved and applied only to 
 
 // Handle all messages
 bot.on("message", async (ctx) => {
-  // Ensure session is properly initialized
-  ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
-  
-  // Skip processing if bot is disabled in this chat
-  if (!ctx.session.enabled) {
-    return;
+  try {
+    console.log("Received message:", ctx.message);
+    
+    // Ensure session is properly initialized
+    ctx.session = ensureCompleteSession(ctx.session, ctx.chat?.type);
+    
+    // ALWAYS ENABLE THE BOT
+    ctx.session.enabled = true;
+    
+    // Use a very simple reply first to test if basic functionality works
+    await ctx.reply("I received your message. Let me analyze it...");
+    
+    const update = ctx.update;
+    const author = ctx.from?.id;
+
+    // Extract the forward origin if the message is forwarded
+    const forwardOrigin = ctx.message?.forward_origin as AnyMessageOrigin | undefined;
+
+    // Get effective preferences for this user
+    const preferences = getEffectivePreferences(ctx.session, author);
+
+    // Generate the reply text using the helper function
+    const text = prettifyUpdate(
+      update, 
+      preferences,
+      author, 
+      forwardOrigin
+    );
+
+    // Create keyboard for view controls
+    const keyboard = createViewControlsKeyboard(preferences);
+
+    // Reply to the user with the formatted update information and buttons
+    await ctx.reply(text, { 
+      parse_mode: "HTML",
+      reply_markup: keyboard
+    });
+  } catch (error) {
+    console.error("Error in message handler:", error);
+    await ctx.reply("Sorry, I encountered an error while processing your message.");
   }
-  
-  // Check message type and apply filter if needed
-  const messageType = getMessageType(ctx);
-  if (messageType && !shouldProcessMessageType(ctx.session.messageFilters, messageType)) {
-    return;
-  }
-  
-  const update = ctx.update;
-  const author = ctx.from?.id;
-
-  // Extract the forward origin if the message is forwarded
-  const forwardOrigin = ctx.message?.forward_origin as AnyMessageOrigin | undefined;
-
-  // Get effective preferences for this user
-  const preferences = getEffectivePreferences(ctx.session, author);
-
-  // Generate the reply text using the helper function
-  const text = prettifyUpdate(
-    update, 
-    preferences,
-    author, 
-    forwardOrigin
-  );
-
-  // Create keyboard for view controls
-  const keyboard = createViewControlsKeyboard(preferences);
-
-  // Reply to the user with the formatted update information and buttons
-  await ctx.reply(text, { 
-    parse_mode: "HTML",
-    reply_markup: keyboard
-  });
 });
 
 // --------------------
